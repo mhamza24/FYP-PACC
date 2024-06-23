@@ -1,0 +1,98 @@
+/* FineData.css */
+
+.fine-data-container {
+    margin: 50px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.fine-search,
+.fine-student-select {
+    margin-bottom: 20px;
+}
+
+.fine-search input,
+.fine-student-select select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+}
+
+.fine-search input:focus,
+.fine-student-select select:focus {
+    outline: none;
+    border-color: #007bff; /* Highlight border on focus */
+}
+
+.fine-search ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 5px 0 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.fine-search ul li {
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.fine-search ul li:hover {
+    background-color: #f0f0f0;
+}
+
+.fine-student-select select {
+    padding: 10px;
+}
+
+.fine-apply {
+    border-top: 1px solid #ccc;
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.fine-type {
+    margin-bottom: 20px;
+}
+
+.fine-type label {
+    display: block;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.fine-type label input[type="radio"] {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.fine-type label span {
+    vertical-align: middle;
+}
+
+.fine-apply-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.fine-apply-button:hover {
+    background-color: #0056b3;
+}

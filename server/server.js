@@ -14,7 +14,7 @@ app.use(cors());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "1234",
   database: "face_detection",
 });
 
@@ -154,5 +154,15 @@ app.post('/api/fine', (req, res) => {
     }
     console.log('Fine applied successfully:', result);
     res.json({ message: 'Fine applied successfully' });
+  });
+});
+
+app.get("/api/getfines", (req, res) => {
+  const query = "SELECT * FROM fine";
+  db.query(query, (error, results) => {
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    res.json(results);
   });
 });

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './GenerateReports.css'; // Import CSS file for component-specific styles
 
 function GenerateReports() {
@@ -8,48 +9,56 @@ function GenerateReports() {
   const [filterMonth, setFilterMonth] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
 
-  // Dummy fines data for demonstration
-  const dummyFines = [
-    { id: 1, student: 'Student A', fineType: 'Round collar', amount: 1000, date: '2024-06-20', department: 'IT' },
-    { id: 2, student: 'Student B', fineType: 'Violation', amount: 2500, date: '2024-06-22', department: 'Admin' },
-    { id: 3, student: 'Student C', fineType: 'No card', amount: 500, date: '2024-06-23', department: 'HR' },
-    // Add more dummy data as needed
-  ];
+  useEffect(() => {
+    fetchFines();
+  }, []);
 
-  // Function to apply filters
-  const applyFilters = () => {
-    // Filter logic based on filterDate, filterWeek, filterMonth, filterDepartment
-    // Example: Filter by date
-    const filteredFines = dummyFines.filter(fine => fine.date === filterDate);
-    setFines(filteredFines);
+  const fetchFines = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/getfines');
+      console.log("data: ", response.data);
+      setFines(response.data);
+    } catch (error) {
+      console.error('Error fetching fines:', error);
+    }
   };
 
-  // Function to clear filters
-  const clearFilters = () => {
-    setFilterDate('');
-    setFilterWeek('');
-    setFilterMonth('');
-    setFilterDepartment('');
-    // Reset fines to show all data
-    setFines(dummyFines);
-  };
+  // const applyFilters = async () => {
+  //   let url = 'http://localhost:5000/api/fines/filter?';
+  //   if (filterDate) url += `date=${filterDate}&`;
+  //   if (filterWeek) url += `week=${filterWeek}&`;
+  //   if (filterMonth) url += `month=${filterMonth}&`;
+  //   if (filterDepartment) url += `department=${filterDepartment}&`;
+    
+  //   const response = await fetch(url);
+  //   const data = await response.json();
+  //   setFines(data);
+  // };
+
+  // const clearFilters = () => {
+  //   setFilterDate('');
+  //   setFilterWeek('');
+  //   setFilterMonth('');
+  //   setFilterDepartment('');
+  //   fetchFines();
+  // };
 
   return (
     <div className="generate-reports-container">
       <h1>Generate Reports</h1>
 
       {/* Filters */}
-      <div className="filters-container">
+      {/* <div className="filters-container">
         <h2>Filters</h2>
         <label>Date:
           <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
-        </label>
+        </label> */}
         {/* Add more filters as needed */}
-        <div className="filter-buttons">
+        {/* <div className="filter-buttons">
           <button className="filter-button" onClick={applyFilters}>Apply Filters</button>
           <button className="filter-button" onClick={clearFilters}>Clear Filters</button>
         </div>
-      </div>
+      </div> */}
 
       {/* Fines List */}
       <div className="fines-list-container">
@@ -62,18 +71,17 @@ function GenerateReports() {
               <th>Fine Type</th>
               <th>Amount</th>
               <th>Date</th>
-              <th>Department</th>
+             
             </tr>
           </thead>
           <tbody>
             {fines.map(fine => (
               <tr key={fine.id}>
                 <td>{fine.id}</td>
-                <td>{fine.student}</td>
-                <td>{fine.fineType}</td>
-                <td>${fine.amount}</td>
-                <td>{fine.date}</td>
-                <td>{fine.department}</td>
+                <td>{fine.student_name}</td>
+                <td>{fine.fine_type}</td>
+                <td>{fine.fine_amount}</td>
+                <td>{fine.created_at}</td>
               </tr>
             ))}
           </tbody>

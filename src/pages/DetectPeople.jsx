@@ -135,7 +135,7 @@ function DetectPeople({ setActivePage }) {
   };
 
  const loadLabeledImages = async () => {
-  const labels = [ "Ali Sarwar"];
+  const labels = [ "Khuzaima Ansari","Irfan Raja"];
   try {
     const labeledDescriptors = await Promise.all(
       labels.map(async (label) => {

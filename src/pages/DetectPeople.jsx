@@ -134,8 +134,22 @@ function DetectPeople({ setActivePage }) {
     };
   };
 
+
+  const fetchLabeledImages = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/getLabelDirectories'); // Adjust URL/port as needed
+      console.log('Labeled Descriptors:', response.data);
+      return response.data
+      // Process response.data as needed
+    } catch (error) {
+      console.error('Error fetching labeled images:', error);
+      // Handle errors
+    }
+  };
  const loadLabeledImages = async () => {
-  const labels = [ "Khuzaima Ansari","Irfan Raja"];
+  const fetechedlabels = await fetchLabeledImages();
+  console.log("test",fetechedlabels)
+  const labels = fetechedlabels
   try {
     const labeledDescriptors = await Promise.all(
       labels.map(async (label) => {

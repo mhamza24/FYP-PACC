@@ -166,3 +166,21 @@ app.get("/api/getfines", (req, res) => {
     res.json(results);
   });
 });
+
+
+app.get("/api/getLabelDirectories", (req, res) => {
+  const directoryPath = path.join(__dirname, "src/labeled_images");
+
+  fs.readdir(directoryPath, (err, files) => {
+    if (err) {
+      console.error("Error reading directories:", err);
+      res.status(500).send("Internal Server Error");
+    } else {
+      const directories = files.filter((file) =>
+        fs.statSync(path.join(directoryPath, file)).isDirectory()
+      );
+      console.log(directories);
+      res.json(directories);
+    }
+  });
+});

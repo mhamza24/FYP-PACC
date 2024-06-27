@@ -18,6 +18,8 @@ const db = mysql.createConnection({
   database: "face_detection",
 });
 
+
+
 db.connect((err) => {
   if (err) {
     console.error("Database connection failed:", err.stack);

@@ -100,12 +100,12 @@ app.post("/api/upload", upload.array("images", 12), (req, res) => {
 
 // Endpoint to handle form submission (uploadTrainData)
 app.post("/api/uploadTrainData", upload.array("images", 10), (req, res) => {
-  const { name, id, section, type } = req.body;
+  const { name, id, section, type, department } = req.body;
 
   // Insert data into MySQL
   const sql =
-    "INSERT INTO traindata (name, id, section, type) VALUES (?, ?, ?, ?)";
-  db.query(sql, [name, id, section, type], (err, result) => {
+    "INSERT INTO traindata (Name, ID, Section, Type,Department) VALUES (?, ?, ?, ?,?)";
+  db.query(sql, [name, id, section, type, department], (err, result) => {
     if (err) {
       console.error("Error inserting data into MySQL:", err);
       res.status(500).send("Error uploading data");
@@ -122,8 +122,7 @@ app.listen(PORT, () => {
 });
 
 app.get("/api/students", (req, res) => {
-
-  const sql = "SELECT * FROM traindata";
+  const sql = "SELECT * FROM traindata where Type like 'student' ";
 
   db.query(sql, (err, result) => {
     if (err) {
@@ -139,22 +138,38 @@ app.get("/api/students", (req, res) => {
   });
 });
 
+app.get("/api/staff", (req, res) => {
+  const sql = "SELECT * FROM traindata where Type like 'staff' "; // Replace 'your_table_name' with actual table name
+  db.query(sql, (err, result) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    res.json(result);
+  });
+});
 
 // Route to handle POST request to apply fine
-app.post('/api/fine', (req, res) => {
-  const { studentId, studentName, fineType, fineAmount } = req.body;
+app.post("/api/fine", (req, res) => {
+  const { studentId, studentName, fineType, fineAmount, department } = req.body;
 
   // Insert into MySQL fine table
-  const sql = 'INSERT INTO fine (student_id, student_name, fine_type, fine_amount) VALUES (?, ?, ?, ?)';
-  db.query(sql, [studentId, studentName, fineType, fineAmount], (err, result) => {
-    if (err) {
-      console.error('Error applying fine:', err);
-      res.status(500).json({ error: 'Failed to apply fine. Please try again.' });
-      return;
+  const sql =
+    "INSERT INTO fine (student_id, student_name,department, fine_type, fine_amount) VALUES (?, ?,?, ?, ?)";
+  db.query(
+    sql,
+    [studentId, studentName, department, fineType, fineAmount],
+    (err, result) => {
+      if (err) {
+        console.error("Error applying fine:", err);
+        res
+          .status(500)
+          .json({ error: "Failed to apply fine. Please try again." });
+        return;
+      }
+      console.log("Fine applied successfully:", result);
+      res.json({ message: "Fine applied successfully" });
     }
-    console.log('Fine applied successfully:', result);
-    res.json({ message: 'Fine applied successfully' });
-  });
+  );
 });
 
 app.get("/api/getfines", (req, res) => {
@@ -166,7 +181,6 @@ app.get("/api/getfines", (req, res) => {
     res.json(results);
   });
 });
-
 
 app.get("/api/getLabelDirectories", (req, res) => {
   const directoryPath = path.join(__dirname, "src/labeled_images");
@@ -182,5 +196,27 @@ app.get("/api/getLabelDirectories", (req, res) => {
       console.log(directories);
       res.json(directories);
     }
+  });
+});
+
+app.post("/api/staff-slips", (req, res) => {
+  const { staffId, staffName, department, reason } = req.body;
+  const slip = { staff_id: staffId, staff_name: staffName, department, reason };
+  const sql = "INSERT INTO staff_slips SET ?";
+
+  db.query(sql, slip, (err, result) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    res.json({ message: "Slip added", id: result.insertId });
+  });
+});
+app.get("/api/getstaffslips", (req, res) => {
+  const query = "SELECT * FROM staff_slips";
+  db.query(query, (error, results) => {
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    res.json(results);
   });
 });

@@ -216,8 +216,10 @@ function DetectPeople({ setActivePage }) {
           name: fullName
         }
       });
-
+      console.log(response.data)
+      
       setData(response.data);
+      console.log(data.Type)
     } catch (error) {
       console.error('Error fetching person details:', error);
       setError('Error fetching person details');
@@ -242,6 +244,15 @@ function DetectPeople({ setActivePage }) {
       setActivePage('FineData'); // Assuming setActivePage is a function to switch to FineData
     
   }
+
+  const handleSlip = () => {
+   
+    setActivePage('Staff'); // Assuming setActivePage is a function to switch to FineData
+  
+}
+
+
+
  
   return (
     <div className='detect_container'>
@@ -253,15 +264,19 @@ function DetectPeople({ setActivePage }) {
             <img src={`server/src/labeled_images/${data.Name}/1.jpg`} alt="Person" className='image' />
           </div>
           <div className='field'>
-            <span className='label'>Name:</span> {data.Name}
+            <span className='label'>Name :</span> {data.Name}
           </div>
           <div className='field'>
-            <span className='label'>Student ID:</span> {data.ID}
+            <span className='label'>Student ID :</span> {data.ID}
           </div>
           <div className='field'>
-            <span className='label'>Section:</span> {data.Section}
+            <span className='label'>Department :</span> {data.department}
           </div>
-          <button onClick={handleFine} className='fine-btn'>Fine</button>
+          <div className='field'>
+            <span className='label'>Section :</span> {data.Section}
+          </div>
+          {data.Type ==="student" ?   <button onClick={handleFine} className='fine-btn'>Fine</button> :  <button onClick={handleSlip} className='fine-btn'>GenerateSlip</button>}
+        
         </div>
       )}
       <div className="myapp">
@@ -272,7 +287,7 @@ function DetectPeople({ setActivePage }) {
           <video ref={videoRef} autoPlay muted width="940" height="650"></video>
           <canvas ref={canvasRef} className="appcanvas" />
         </div>
-        <button onClick={handleDetection} disabled={!detectedName}>Confirm Detection</button>
+        <button className='confirmDetectBtn' onClick={handleDetection} disabled={!detectedName}>Confirm Detection</button>
       
       </div>
    

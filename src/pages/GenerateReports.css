@@ -1,59 +1,73 @@
 /* GenerateReports.css */
 
 .generate-reports-container {
-    margin: 50px;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    max-width: 800px;
-    margin: 0 auto;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+  color: #81181b;
+  text-align: center;
 }
 
-.filters-container {
-    margin-bottom: 20px;
+.type-switch-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
-.filter-buttons {
-    margin-top: 10px;
+.type-switch-container label {
+  margin: 0 10px;
+  font-weight: bold;
 }
 
-.filter-button {
-    margin-right: 10px;
-    padding: 8px 16px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
+.data-list-container {
+  margin-top: 20px;
 }
 
-.filter-button:hover {
-    background-color: #0056b3;
+.data-list-container h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #81181b;
 }
 
-.fines-list-container {
-    margin-top: 20px;
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #81181b;
+  margin-bottom: 40px;
 }
 
-.fines-table {
-    width: 100%;
-    border-collapse: collapse;
+.data-table th,
+.data-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
 }
 
-.fines-table th,
-.fines-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+.data-table th {
+  background-color: #f0f0f0;
+  font-weight: bold;
 }
 
-.fines-table th {
-    background-color: #007bff;
-    color: #fff;
+.type-switch-container input[type="radio"] {
+  margin-top: 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #81181b;
+  border-radius: 50%;
+  background-color: #ffffff;
+  cursor: pointer;
+  outline: none;
+  margin-right: 7px;
 }
 
-.fines-table tbody tr:hover {
-    background-color: #f2f2f2;
+.type-switch-container input[type="radio"]:checked {
+  background-color: #81181b;
 }

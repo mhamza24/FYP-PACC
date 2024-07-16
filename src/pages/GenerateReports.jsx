@@ -1,92 +1,162 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { format } from 'date-fns';
+import Papa from 'papaparse';
 import './GenerateReports.css'; // Import CSS file for component-specific styles
 
 function GenerateReports() {
-  const [fines, setFines] = useState([]);
-  const [filterDate, setFilterDate] = useState('');
-  const [filterWeek, setFilterWeek] = useState('');
-  const [filterMonth, setFilterMonth] = useState('');
-  const [filterDepartment, setFilterDepartment] = useState('');
+  const [data, setData] = useState([]);
+  const [selectedType, setSelectedType] = useState('student');
 
   useEffect(() => {
-    fetchFines();
-  }, []);
+    fetchData();
+  }, [selectedType]);
 
-  const fetchFines = async () => {
+  const fetchData = async () => {
+    const endpoint = selectedType === 'student' ? 'getfines' : 'getstaffslips';
     try {
-      const response = await axios.get('http://localhost:5000/api/getfines');
+      const response = await axios.get(`http://localhost:5000/api/${endpoint}`);
       console.log("data: ", response.data);
-      setFines(response.data);
+      setData(response.data);
     } catch (error) {
-      console.error('Error fetching fines:', error);
+      console.error('Error fetching data:', error);
     }
   };
 
-  // const applyFilters = async () => {
-  //   let url = 'http://localhost:5000/api/fines/filter?';
-  //   if (filterDate) url += `date=${filterDate}&`;
-  //   if (filterWeek) url += `week=${filterWeek}&`;
-  //   if (filterMonth) url += `month=${filterMonth}&`;
-  //   if (filterDepartment) url += `department=${filterDepartment}&`;
-    
-  //   const response = await fetch(url);
-  //   const data = await response.json();
-  //   setFines(data);
-  // };
+  const handleTypeChange = (e) => {
+    setSelectedType(e.target.value);
+  };
 
-  // const clearFilters = () => {
-  //   setFilterDate('');
-  //   setFilterWeek('');
-  //   setFilterMonth('');
-  //   setFilterDepartment('');
-  //   fetchFines();
-  // };
+  const formatDateTime = (dateTime) => {
+    if (!dateTime) return ''; // Handle null or undefined dateTime
+    try {
+      return format(new Date(dateTime), 'dd-MM-yyyy HH:mm:ss');
+    } catch (error) {
+      console.error('Invalid date format:', error);
+      return ''; // Return empty string or handle the error as needed
+    }
+  };
+
+  const downloadCSV = () => {
+    const filteredData = data.filter(item => {
+      if (selectedType === 'student') {
+        return item.hasOwnProperty('id');
+      } else if (selectedType === 'staff') {
+        return item.hasOwnProperty('staff_id');
+      }
+      return false;
+    });
+
+    const csvData = filteredData.map(item => {
+      if (selectedType === 'student') {
+        return {
+          ID: item.id,
+          Name: item.student_name,
+          FineType: item.fine_type,
+          Amount: item.fine_amount,
+          Department: item.department,
+          Date: formatDateTime(item.created_at)
+        };
+      } else if (selectedType === 'staff') {
+        return {
+          ID: item.staff_id,
+          Name: item.staff_name,
+          Department: item.department,
+          Reason: item.reason,
+          Date: formatDateTime(item.time)
+        };
+      }
+      return {};
+    });
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${selectedType}_data.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="generate-reports-container">
       <h1>Generate Reports</h1>
 
-      {/* Filters */}
-      {/* <div className="filters-container">
-        <h2>Filters</h2>
-        <label>Date:
-          <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
-        </label> */}
-        {/* Add more filters as needed */}
-        {/* <div className="filter-buttons">
-          <button className="filter-button" onClick={applyFilters}>Apply Filters</button>
-          <button className="filter-button" onClick={clearFilters}>Clear Filters</button>
-        </div>
-      </div> */}
+      <div className="type-switch-container">
+        <label>
+          <input
+            type="radio"
+            name="type"
+            value="student"
+            checked={selectedType === 'student'}
+            onChange={handleTypeChange}
+          />
+          Student
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="type"
+            value="staff"
+            checked={selectedType === 'staff'}
+            onChange={handleTypeChange}
+          />
+          Staff
+        </label>
+      </div>
 
-      {/* Fines List */}
-      <div className="fines-list-container">
-        <h2>Fines</h2>
-        <table className="fines-table">
+      <div className="data-list-container">
+        <h2>{selectedType === 'student' ? 'Fines' : 'Staff Slips'}</h2>
+        <table className="data-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Student</th>
-              <th>Fine Type</th>
-              <th>Amount</th>
+              <th>{selectedType === 'student' ? 'Student' : 'Staff'}</th>
+              {selectedType === 'student' ? (
+                <>
+                  <th>Fine Type</th>
+                  <th>Amount</th>
+                  <th>Department</th>
+                </>
+              ) : (
+                <>
+                  <th>Department</th>
+                  <th>Reason</th>
+                </>
+              )}
               <th>Date</th>
-             
             </tr>
           </thead>
           <tbody>
-            {fines.map(fine => (
-              <tr key={fine.id}>
-                <td>{fine.id}</td>
-                <td>{fine.student_name}</td>
-                <td>{fine.fine_type}</td>
-                <td>{fine.fine_amount}</td>
-                <td>{fine.created_at}</td>
+            {data.map(item => (
+              <tr key={selectedType === 'student' ? item.id : item.staff_id}>
+                <td>{selectedType === 'student' ? item.id : item.staff_id}</td>
+                <td>{selectedType === 'student' ? item.student_name : item.staff_name}</td>
+                {selectedType === 'student' ? (
+                  <>
+                    <td>{item.fine_type}</td>
+                    <td>{item.fine_amount}</td>
+                    <td>{item.department}</td>
+                    <td>{formatDateTime(item.created_at)}</td>
+                  </>
+                ) : (
+                  <>
+                    <td>{item.department}</td>
+                    <td>{item.reason}</td>
+                    <td>{formatDateTime(item.time)}</td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <button onClick={downloadCSV} className="download-button">Download CSV</button>
     </div>
   );
 }

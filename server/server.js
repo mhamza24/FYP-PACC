@@ -14,7 +14,7 @@ app.use(cors());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "Khuz@im@123",
+  password: "1234",
   database: "face_detection",
 });
 
@@ -200,8 +200,14 @@ app.get("/api/getLabelDirectories", (req, res) => {
 });
 
 app.post("/api/staff-slips", (req, res) => {
-  const { staffId, staffName, department, reason } = req.body;
-  const slip = { staff_id: staffId, staff_name: staffName, department, reason };
+  const { staffId, staffName, department, reason,duration } = req.body;
+  const slip = {
+    staff_id: staffId,
+    staff_name: staffName,
+    department,
+    reason,
+    duration: duration,
+  };
   const sql = "INSERT INTO staff_slips SET ?";
 
   db.query(sql, slip, (err, result) => {

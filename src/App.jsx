@@ -27,7 +27,7 @@ function App() {
           className={`nav-option ${activePage === "TrainData" ? "active" : ""}`}
           onClick={() => handleMenuClick("TrainData")}
         >
-          <h3>Train Data</h3>
+          <h3>Register Person</h3>
         </div>
 
         <div
@@ -36,16 +36,21 @@ function App() {
           }`}
           onClick={() => handleMenuClick("DetectPeople")}
         >
-          <h3>Detect People</h3>
+          <h3>Detect Face</h3>
         </div>
 
         <div
           className={`nav-option ${activePage === "FineData" ? "active" : ""}`}
           onClick={() => handleMenuClick("FineData")}
         >
-          <h3>Fine Data</h3>
+          <h3>Student</h3>
         </div>
-
+        <div
+          className={`nav-option ${activePage === "Staff" ? "active" : ""}`}
+          onClick={() => handleMenuClick("Staff")}
+        >
+          <h3>Staff</h3>
+        </div>
         <div
           className={`nav-option ${
             activePage === "GenerateReports" ? "active" : ""
@@ -55,19 +60,7 @@ function App() {
           <h3>Generate Reports</h3>
         </div>
 
-        <div
-          className={`nav-option ${activePage === "Staff" ? "active" : ""}`}
-          onClick={() => handleMenuClick("Staff")}
-        >
-          <h3>Staff</h3>
-        </div>
-
-        <div
-          className={`nav-option ${activePage === "StaffData" ? "active" : ""}`}
-          onClick={() => handleMenuClick("StaffData")}
-        >
-          <h3>Staff Data</h3>
-        </div>
+       
       </header>
 
       <div className="main-container">

@@ -11,29 +11,41 @@ function GenerateReports() {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetchData();
+    if (selectedType === 'student' && studentData.length === 0) {
+      fetchStudentData();
+    } else if (selectedType === 'staff' && staffData.length === 0) {
+      fetchStaffData();
+    } else {
+      setData(selectedType === 'student' ? studentData : staffData);
+    }
   }, [selectedType]);
 
-  const fetchData = async () => {
-    const endpoint = selectedType === 'student' ? 'getfines' : 'getstaffslips';
+  const fetchStudentData = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/${endpoint}`);
-      console.log("data: ", response.data);
+      const response = await axios.get('http://localhost:5000/api/getfines');
+      setStudentData(response.data);
       if (selectedType === 'student') {
-        setStudentData(response.data);
-        setData(response.data);
-      } else {
-        setStaffData(response.data);
         setData(response.data);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching student data:', error);
+    }
+  };
+
+  const fetchStaffData = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/getstaffslips');
+      setStaffData(response.data);
+      if (selectedType === 'staff') {
+        setData(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching staff data:', error);
     }
   };
 
   const handleTypeChange = (e) => {
     setSelectedType(e.target.value);
-    setData(e.target.value === 'student' ? studentData : staffData);
   };
 
   const formatDateTime = (dateTime) => {
@@ -47,16 +59,7 @@ function GenerateReports() {
   };
 
   const downloadCSV = () => {
-    const filteredData = data.filter(item => {
-      if (selectedType === 'student') {
-        return item.hasOwnProperty('student_id');
-      } else if (selectedType === 'staff') {
-        return item.hasOwnProperty('staff_id');
-      }
-      return false;
-    });
-
-    const csvData = filteredData.map(item => {
+    const csvData = data.map(item => {
       if (selectedType === 'student') {
         return {
           ID: item.student_id,
@@ -66,16 +69,16 @@ function GenerateReports() {
           Department: item.department,
           Date: formatDateTime(item.created_at)
         };
-      } else if (selectedType === 'staff') {
+      } else {
         return {
           ID: item.staff_id,
           Name: item.staff_name,
           Department: item.department,
           Reason: item.reason,
+          Duration: item.duration,
           Date: formatDateTime(item.time)
         };
       }
-      return {};
     });
 
     const csv = Papa.unparse(csvData);
@@ -135,6 +138,7 @@ function GenerateReports() {
                 <>
                   <th>Department</th>
                   <th>Reason</th>
+                  <th>Duration</th>
                 </>
               )}
               <th>Date</th>
@@ -142,7 +146,7 @@ function GenerateReports() {
           </thead>
           <tbody>
             {data.map(item => (
-              <tr key={selectedType === 'student' ? item.student_id : item.staff_id}>
+              <tr key={selectedType === 'student' ? item.id : item.slip_id}>
                 <td>{selectedType === 'student' ? item.student_id : item.staff_id}</td>
                 <td>{selectedType === 'student' ? item.student_name : item.staff_name}</td>
                 {selectedType === 'student' ? (
@@ -156,6 +160,7 @@ function GenerateReports() {
                   <>
                     <td>{item.department}</td>
                     <td>{item.reason}</td>
+                    <td>{item.duration}</td>
                     <td>{formatDateTime(item.time)}</td>
                   </>
                 )}

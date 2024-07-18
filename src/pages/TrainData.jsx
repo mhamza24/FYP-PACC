@@ -123,7 +123,7 @@ const TrainData = () => {
               <option value="Computer Science">Computer Science</option>
             
 
-              {/* Add more options as needed */}
+              
             </select>
           </div>
           <div className="form-group">

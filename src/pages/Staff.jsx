@@ -7,6 +7,7 @@ function StaffSlipForm() {
   const [selectedStaff, setSelectedStaff] = useState('');
   const [selectedStaffName, setSelectedStaffName] = useState('');
   const [department, setDepartment] = useState('');
+  const [duration, setDuration] = useState('');
   const [reason, setReason] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -33,7 +34,8 @@ function StaffSlipForm() {
       member.ID.toLowerCase().includes(value.toLowerCase()) ||
       member.Section.toLowerCase().includes(value.toLowerCase()) ||
       member.Type.toLowerCase().includes(value.toLowerCase()) ||
-      member.department.toLowerCase().includes(value.toLowerCase())
+      member.department.toLowerCase().includes(value.toLowerCase()) ||
+      member.duration.toLowerCase().includes(value.toLowerCase())
     );
     setSuggestions(filteredStaff);
   };
@@ -46,6 +48,7 @@ function StaffSlipForm() {
     setSelectedStaff(member.ID);
     setSelectedStaffName(member.Name);
     setDepartment(member.department);
+    setDuration(member.duration);
     setSearchTerm(`${member.Name} (${member.ID}) - ${member.Section}`);
     setShowSuggestions(false);
   };
@@ -65,7 +68,8 @@ function StaffSlipForm() {
       staffId: selectedStaff,
       staffName: selectedStaffName,
       department: department,
-      reason: reason
+      reason: reason,
+      duration:duration
     };
 
     axios.post('http://localhost:5000/api/staff-slips', slipData)
@@ -76,6 +80,7 @@ function StaffSlipForm() {
         setSelectedStaffName('');
         setDepartment('');
         setReason('');
+        setDuration('');
         setSearchTerm('');
       })
       .catch(error => {
@@ -127,6 +132,20 @@ function StaffSlipForm() {
               Reason:
               <textarea value={reason} onChange={(e) => setReason(e.target.value)} required />
             </label>
+          </div>
+          <div className="form-group">
+            <label>Duration:</label>
+            <select
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+            >
+              <option value="">Select Duration</option>
+              <option value="Less than 1 Hour">Less than 1 hour</option>
+              <option value="2 Hour">2 Hour</option>
+              <option value="3 Hour">3 Hour</option>
+              <option value="More than 3 Hour">More than 3 Hour</option>
+              <option value="Halfday">Halfday</option>              
+            </select>
           </div>
           <button type="submit">Submit Slip</button>
         </form>

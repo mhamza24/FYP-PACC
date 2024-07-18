@@ -252,7 +252,7 @@ function DetectPeople({ setActivePage }) {
 }
 
 
-
+  console.log(data)
  
   return (
     <div className='detect_container'>

@@ -14,7 +14,7 @@ app.use(cors());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "1234",
+  password: "Khuz@im@123",
   database: "face_detection",
 });
 

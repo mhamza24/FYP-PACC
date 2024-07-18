@@ -30,12 +30,12 @@ function GenerateReports() {
   const formatDateTime = (dateTime) => {
     if (!dateTime) return ''; // Handle null or undefined dateTime
     try {
-      return format(new Date(dateTime), 'dd-MM-yyyy HH:mm:ss');
+      return format(new Date(dateTime), 'dd-MM-yyyy hh:mm:ss a');
     } catch (error) {
       console.error('Invalid date format:', error);
       return ''; // Return empty string or handle the error as needed
     }
-  };
+  };  
 
   const downloadCSV = () => {
     const filteredData = data.filter(item => {
@@ -50,7 +50,7 @@ function GenerateReports() {
     const csvData = filteredData.map(item => {
       if (selectedType === 'student') {
         return {
-          ID: item.id,
+          ID: item.student_id,
           Name: item.student_name,
           FineType: item.fine_type,
           Amount: item.fine_amount,
@@ -134,7 +134,7 @@ function GenerateReports() {
           <tbody>
             {data.map(item => (
               <tr key={selectedType === 'student' ? item.id : item.staff_id}>
-                <td>{selectedType === 'student' ? item.id : item.staff_id}</td>
+                <td>{selectedType === 'student' ? item.student_id : item.staff_id}</td>
                 <td>{selectedType === 'student' ? item.student_name : item.staff_name}</td>
                 {selectedType === 'student' ? (
                   <>

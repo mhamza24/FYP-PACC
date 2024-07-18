@@ -30,3 +30,5 @@ CREATE TABLE fine (
   fine_amount INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+select * from traindata;

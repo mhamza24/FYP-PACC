@@ -5,8 +5,10 @@ import Papa from 'papaparse';
 import './GenerateReports.css'; // Import CSS file for component-specific styles
 
 function GenerateReports() {
-  const [data, setData] = useState([]);
+  const [studentData, setStudentData] = useState([]);
+  const [staffData, setStaffData] = useState([]);
   const [selectedType, setSelectedType] = useState('student');
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -17,7 +19,13 @@ function GenerateReports() {
     try {
       const response = await axios.get(`http://localhost:5000/api/${endpoint}`);
       console.log("data: ", response.data);
-      setData(response.data);
+      if (selectedType === 'student') {
+        setStudentData(response.data);
+        setData(response.data);
+      } else {
+        setStaffData(response.data);
+        setData(response.data);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -25,6 +33,7 @@ function GenerateReports() {
 
   const handleTypeChange = (e) => {
     setSelectedType(e.target.value);
+    setData(e.target.value === 'student' ? studentData : staffData);
   };
 
   const formatDateTime = (dateTime) => {
@@ -35,12 +44,12 @@ function GenerateReports() {
       console.error('Invalid date format:', error);
       return ''; // Return empty string or handle the error as needed
     }
-  };  
+  };
 
   const downloadCSV = () => {
     const filteredData = data.filter(item => {
       if (selectedType === 'student') {
-        return item.hasOwnProperty('id');
+        return item.hasOwnProperty('student_id');
       } else if (selectedType === 'staff') {
         return item.hasOwnProperty('staff_id');
       }
@@ -133,7 +142,7 @@ function GenerateReports() {
           </thead>
           <tbody>
             {data.map(item => (
-              <tr key={selectedType === 'student' ? item.id : item.staff_id}>
+              <tr key={selectedType === 'student' ? item.student_id : item.staff_id}>
                 <td>{selectedType === 'student' ? item.student_id : item.staff_id}</td>
                 <td>{selectedType === 'student' ? item.student_name : item.staff_name}</td>
                 {selectedType === 'student' ? (

@@ -18,9 +18,15 @@ const TrainData = () => {
   }, [webcamRef]);
 
   const handleSubmit = async () => {
-    const imagesFormData = new FormData();
-    imagesFormData.append("name", name);
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("id", id);
+    formData.append("section", section);
+    formData.append("type", type);
+    formData.append("department", department);
+
     images.forEach((image, index) => {
+      console.log(`Processing image ${index + 1}`); // Should print 1, 2, 3, 4, 5
       const byteString = atob(image.split(",")[1]);
       const mimeString = image.split(",")[0].split(":")[1].split(";")[0];
       const arrayBuffer = new ArrayBuffer(byteString.length);
@@ -29,54 +35,32 @@ const TrainData = () => {
         intArray[i] = byteString.charCodeAt(i);
       }
       const file = new Blob([arrayBuffer], { type: mimeString });
-      imagesFormData.append("images", file, `${index + 1}.jpg`);
+      formData.append("images", file, `${index + 1}.jpg`);
     });
-
-    const dataFormData = new FormData();
-    dataFormData.append("name", name);
-    dataFormData.append("id", id);
-    dataFormData.append("section", section);
-    dataFormData.append("type", type);
-    dataFormData.append("department", department);
-
+  
+    
     try {
-      // Upload images
-      await axios.post("http://localhost:5000/api/upload", imagesFormData, {
+      // Upload data and images
+      console.log("formData:",formData)
+    console.log("Images:",images.length)
+      await axios.post("http://localhost:5000/api/uploadTrainData", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      alert("Images uploaded successfully");
-    } catch (error) {
-      console.error("Error uploading images", error);
-      alert("Error uploading images");
-      return; // Exit early on error
-    }
+      alert("Data and images uploaded successfully");
 
-    try {
-      // Upload data
-      await axios.post(
-        "http://localhost:5000/api/uploadTrainData",
-        dataFormData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      alert("Data uploaded successfully");
+      // Reset form
+      setName("");
+      setId("");
+      setSection("");
+      setType("");
+      setDepartment("");
+      setImages([]);
     } catch (error) {
-      console.error("Error uploading data", error);
-      alert("Error uploading data");
+      console.error("Error uploading data and images", error);
+      alert("Error uploading data and images");
     }
-
-    // Reset form
-    setName("");
-    setId("");
-    setSection("");
-    setType("");
-    setDepartment("");
-    setImages([]);
   };
 
   return (
@@ -121,9 +105,6 @@ const TrainData = () => {
               <option value="Electical">Electical</option>
               <option value="Civil">Civil</option>
               <option value="Computer Science">Computer Science</option>
-            
-
-              
             </select>
           </div>
           <div className="form-group">

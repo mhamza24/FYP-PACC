@@ -5,7 +5,7 @@ import DetectPeople from "./pages/DetectPeople";
 import FineData from "./pages/FineData";
 import GenerateReports from "./pages/GenerateReports";
 import Staff from "./pages/Staff";
-import StaffData from "./pages/StaffData";
+import StaffData from "./pages/alert";
 import uniLogo from './assets/uni_logo.png';
 
 function App() {

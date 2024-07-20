@@ -1,7 +1,8 @@
 import React from 'react';
-import './StaffData.css';
+import './alert.css';
 
-function StaffData() {
+function alert() {
+  console.log("you are in alter page ")
   return (
     <div className='staffData'>
       <h1>Train Data Page</h1>
@@ -10,4 +11,4 @@ function StaffData() {
   );
 }
 
-export default StaffData;
+export default alert;

@@ -14,7 +14,7 @@ app.use(cors());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "1234",
+  password: "Khuz@im@123",
   database: "face_detection",
 });
 
@@ -183,7 +183,7 @@ app.post("/api/fine", (req, res) => {
 });
 
 app.get("/api/getfines", (req, res) => {
-  const query = "SELECT * FROM fine";
+  const query = "SELECT * FROM fine order by id desc";
   db.query(query, (error, results) => {
     if (error) {
       return res.status(500).json({ error: error.message });

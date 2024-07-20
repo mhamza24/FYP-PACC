@@ -92,7 +92,7 @@ function DetectPeople({ setActivePage }) {
 
     if (!labeledDescriptors) return;
 
-    const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.01);
+    const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45);
 
     const detectInterval = setInterval(async () => {
       const videoElement = videoRef.current;
@@ -100,7 +100,7 @@ function DetectPeople({ setActivePage }) {
         return;
       }
 
-      const detections = await faceapi.detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+      const detections = await faceapi.detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.2 }))
         .withFaceLandmarks()
         .withFaceDescriptors();
       const displaySize = { width: videoElement.videoWidth, height: videoElement.videoHeight };

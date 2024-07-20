@@ -101,6 +101,7 @@ select{
   display: flex;
   flex-direction: column;
   align-items: center;
+
 }
 
 .capture-button {
@@ -131,4 +132,8 @@ select{
   margin-right: 10px;
   border: 2px solid #ddd;
   border-radius: 4px;
+}
+.instruction-text {
+  color: #81181b;
+  font-size: large;
 }

@@ -123,3 +123,11 @@ h2 {
   font-weight: 400;
   color: #777;
 }
+
+.alertText {
+  color: #81181b;
+}
+
+.alertButton {
+  background-color: #81181b;
+}

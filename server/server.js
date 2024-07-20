@@ -26,6 +26,25 @@ db.connect((err) => {
   console.log("Connected to database.");
 });
 
+const getCounterFilePath = (dir) => path.join(dir, "counter.json");
+
+// Function to get the next file number from the counter file
+const getNextFileNumber = (dir) => {
+  const counterFilePath = getCounterFilePath(dir);
+  if (fs.existsSync(counterFilePath)) {
+    const counterData = JSON.parse(fs.readFileSync(counterFilePath));
+    return counterData.fileNumber + 1;
+  } else {
+    return 1;
+  }
+};
+
+// Function to update the counter file with the new file number
+const updateFileNumber = (dir, nextNumber) => {
+  const counterFilePath = getCounterFilePath(dir);
+  fs.writeFileSync(counterFilePath, JSON.stringify({ fileNumber: nextNumber }));
+};
+
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -37,22 +56,11 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const dir = `src/labeled_images/${req.body.name}`;
-    fs.readdir(dir, (err, files) => {
-      if (err) {
-        cb(err);
-      } else {
-        // Filter out only jpg files and get the highest number
-        const fileNumbers = files
-          .filter((file) => file.endsWith(".jpg"))
-          .map((file) => parseInt(file.split(".jpg")[0]))
-          .filter((num) => !isNaN(num))
-          .sort((a, b) => a - b);
 
-        const nextNumber =
-          fileNumbers.length > 0 ? fileNumbers[fileNumbers.length - 1] + 1 : 1;
-        cb(null, `${nextNumber}.jpg`);
-      }
-    });
+    const nextNumber = getNextFileNumber(dir);
+    updateFileNumber(dir, nextNumber);
+
+    cb(null, `${nextNumber}.jpg`);
   },
 });
 
@@ -101,6 +109,8 @@ app.post("/api/upload", upload.array("images", 12), (req, res) => {
 // Endpoint to handle form submission (uploadTrainData)
 app.post("/api/uploadTrainData", upload.array("images", 10), (req, res) => {
   const { name, id, section, type, department } = req.body;
+
+  console.log("Uploaded files:", req.files);
 
   // Insert data into MySQL
   const sql =

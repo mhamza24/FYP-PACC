@@ -10,12 +10,29 @@ const TrainData = () => {
   const [type, setType] = useState("");
   const [department, setDepartment] = useState("");
   const [images, setImages] = useState([]);
+  const [instruction, setInstruction] = useState("Look into the camera");
+  const [capturedImagesCount, setCapturedImagesCount] = useState(0);
   const webcamRef = useRef(null);
+
+  const instructions = [
+    "Look into the camera",
+    "Look right",
+    "Look left",
+    "Look down",
+    "Smile"
+  ];
 
   const handleCapture = useCallback(() => {
     const imageSrc = webcamRef.current.getScreenshot();
     setImages((prevImages) => [...prevImages, imageSrc]);
-  }, [webcamRef]);
+    setCapturedImagesCount((prevCount) => prevCount + 1);
+
+    if (capturedImagesCount < instructions.length - 1) {
+      setInstruction(instructions[capturedImagesCount + 1]);
+    } else {
+      setInstruction("All images captured. Click submit.");
+    }
+  }, [webcamRef, capturedImagesCount]);
 
   const handleSubmit = async () => {
     const formData = new FormData();
@@ -26,7 +43,6 @@ const TrainData = () => {
     formData.append("department", department);
 
     images.forEach((image, index) => {
-      console.log(`Processing image ${index + 1}`); // Should print 1, 2, 3, 4, 5
       const byteString = atob(image.split(",")[1]);
       const mimeString = image.split(",")[0].split(":")[1].split(";")[0];
       const arrayBuffer = new ArrayBuffer(byteString.length);
@@ -35,14 +51,11 @@ const TrainData = () => {
         intArray[i] = byteString.charCodeAt(i);
       }
       const file = new Blob([arrayBuffer], { type: mimeString });
+
       formData.append("images", file, `${index + 1}.jpg`);
     });
-  
-    
+
     try {
-      // Upload data and images
-      console.log("formData:",formData)
-    console.log("Images:",images.length)
       await axios.post("http://localhost:5000/api/uploadTrainData", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -57,6 +70,8 @@ const TrainData = () => {
       setType("");
       setDepartment("");
       setImages([]);
+      setCapturedImagesCount(0);
+      setInstruction("Look into the camera");
     } catch (error) {
       console.error("Error uploading data and images", error);
       alert("Error uploading data and images");
@@ -131,12 +146,15 @@ const TrainData = () => {
             </div>
           </div>
         </form>
-        <button className="submit-button" type="button" onClick={handleSubmit}>
-          Submit
-        </button>
+        {capturedImagesCount >= instructions.length && (
+          <button className="submit-button" type="button" onClick={handleSubmit}>
+            Submit
+          </button>
+        )}
       </div>
       <div className="webcam-container">
         <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" />
+        <p className="instruction-text">{instruction}</p>
         <button className="capture-button" onClick={handleCapture}>
           Capture Photo
         </button>

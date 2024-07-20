@@ -2,8 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import '../../src/App.css';
 import * as faceapi from 'face-api.js';
 import axios from 'axios';
-import FineData from './FineData';
-import App from '../App'
+
 function DetectPeople({ setActivePage }) {
   const videoRef = useRef();
   const canvasRef = useRef();
@@ -16,7 +15,11 @@ function DetectPeople({ setActivePage }) {
     Section: 'unknown'
   });
   const [error, setError] = useState(null);
-  const [showData, setshowData] = useState(false);
+  const [showData, setShowData] = useState(false);
+  const [unknownTimer, setUnknownTimer] = useState(null);
+  const [alertShown, setAlertShown] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+
   useEffect(() => {
     loadModels();
     startVideo();
@@ -26,11 +29,7 @@ function DetectPeople({ setActivePage }) {
       window.removeEventListener('resize', handleResize);
       if (videoRef.current) {
         videoRef.current.pause();
-        videoRef.current.src = '';
-      }
-      if (canvasRef.current) {
-        const context = canvasRef.current.getContext('2d');
-        context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        videoRef.current.srcObject = null;
       }
     };
   }, []);
@@ -58,7 +57,6 @@ function DetectPeople({ setActivePage }) {
     }
     window.addEventListener('resize', handleResize);
   };
-  
 
   const loadModels = () => {
     Promise.all([
@@ -67,14 +65,13 @@ function DetectPeople({ setActivePage }) {
       faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
       faceapi.nets.faceExpressionNet.loadFromUri('/models'),
       faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
-
-    ]).then(() => {
-      
-
-      setModelsLoaded(true);
-    }).catch((err) => {
-      setError(`Error loading models: ${err.message}`);
-    });
+    ])
+      .then(() => {
+        setModelsLoaded(true);
+      })
+      .catch((err) => {
+        setError(`Error loading models: ${err.message}`);
+      });
   };
 
   const initializeCanvas = () => {
@@ -95,7 +92,7 @@ function DetectPeople({ setActivePage }) {
 
     if (!labeledDescriptors) return;
 
-    const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45);
+    const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.01);
 
     const detectInterval = setInterval(async () => {
       const videoElement = videoRef.current;
@@ -103,7 +100,9 @@ function DetectPeople({ setActivePage }) {
         return;
       }
 
-      const detections = await faceapi.detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.2 })).withFaceLandmarks().withFaceDescriptors();
+      const detections = await faceapi.detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+        .withFaceLandmarks()
+        .withFaceDescriptors();
       const displaySize = { width: videoElement.videoWidth, height: videoElement.videoHeight };
       const resizedDetections = faceapi.resizeResults(detections, displaySize);
       const canvas = canvasRef.current;
@@ -115,6 +114,7 @@ function DetectPeople({ setActivePage }) {
       if (results.length > 0) {
         const name = results[0].toString();
         setDetectedName(name);
+        handleUnknownName(name);
       }
 
       results.forEach((result, i) => {
@@ -134,92 +134,76 @@ function DetectPeople({ setActivePage }) {
     };
   };
 
+  const handleUnknownName = (name) => {
+    if (name.includes('unknown')) {
+      if (!unknownTimer) {
+        const timer = setTimeout(() => {
+          captureImage();
+          setAlertShown(true);
+        }, 5000);
+        setUnknownTimer(timer);
+      }
+    } else {
+      clearTimeout(unknownTimer);
+      setUnknownTimer(null);
+    }
+  };
 
   const fetchLabeledImages = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/getLabelDirectories'); // Adjust URL/port as needed
-      console.log('Labeled Descriptors:', response.data);
-      return response.data
-      // Process response.data as needed
+      return response.data;
     } catch (error) {
       console.error('Error fetching labeled images:', error);
-      // Handle errors
     }
   };
- const loadLabeledImages = async () => {
-  const fetechedlabels = await fetchLabeledImages();
-  console.log("test",fetechedlabels)
-  const labels = fetechedlabels
-  try {
-    const labeledDescriptors = await Promise.all(
-      labels.map(async (label) => {
-        const descriptions = [];
-        for (let i = 1; i <= 3; i++) {
-          const imagePath = `server/src/labeled_images/${label}/${i}.jpg`;
-          console.log(`Loading image: ${imagePath}`);
-          try {
-            const img = await faceapi.fetchImage(imagePath);
-            const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-            if (detections) {
-              descriptions.push(detections.descriptor);
-            } else {
-              console.warn(`No face detected in ${imagePath}`);
-              // You can skip this image or handle it in some way
-              // For example, push a default descriptor or skip adding to descriptions array
+
+  const loadLabeledImages = async () => {
+    const fetchedLabels = await fetchLabeledImages();
+    try {
+      const labeledDescriptors = await Promise.all(
+        fetchedLabels.map(async (label) => {
+          const descriptions = [];
+          for (let i = 1; i <= 3; i++) {
+            const imagePath = `server/src/labeled_images/${label}/${i}.jpg`;
+            try {
+              const img = await faceapi.fetchImage(imagePath);
+              const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+              if (detections) {
+                descriptions.push(detections.descriptor);
+              }
+            } catch (error) {
+              console.error(`Error processing ${imagePath}: ${error.message}`);
             }
-          } catch (error) {
-            console.error(`Error processing ${imagePath}: ${error.message}`);
-            // Handle specific errors related to image loading or face detection
-            // You may want to skip the image entirely or provide a default descriptor
           }
-        }
-        // Ensure descriptions array is not empty before creating LabeledFaceDescriptors
-        if (descriptions.length > 0) {
-          return new faceapi.LabeledFaceDescriptors(label, descriptions);
-        } else {
-          console.warn(`No valid descriptors found for ${label}. Skipping.`);
-          return null; // Return null or handle this case based on your application's needs
-        }
-      })
-    );
-
-    // Filter out null values (if any) from labeledDescriptors array
-    const filteredDescriptors = labeledDescriptors.filter(descriptor => descriptor !== null);
-
-    // Ensure we log the filteredDescriptors to verify what's being loaded
-    console.log("Labeled Descriptors:", filteredDescriptors);
-
-    return filteredDescriptors;
-  } catch (error) {
-    console.error(`Error loading labeled images: ${error.message}`);
-    throw error; // Rethrow the error to indicate failure in loading labeled images
-  }
-};
-
+          if (descriptions.length > 0) {
+            return new faceapi.LabeledFaceDescriptors(label, descriptions);
+          } else {
+            return null;
+          }
+        })
+      );
+      return labeledDescriptors.filter(descriptor => descriptor !== null);
+    } catch (error) {
+      console.error(`Error loading labeled images: ${error.message}`);
+      throw error;
+    }
+  };
 
   const handleDetection = async () => {
     if (!detectedName) return;
-    console.log(detectedName)
+    const cleanedName = detectedName.replace(/[^a-zA-Z ]/g, '');
+    const fullName = cleanedName.split(' ').slice(0, 2).join(' ');
 
-    const cleanedName = detectedName.replace(/[^a-zA-Z ]/g, ''); // Remove all non-alphabetic characters and spaces
-    const fullName = cleanedName.split(' ')[0] +" "+ cleanedName.split(' ')[1] ; // Split the cleaned name and take the first word
-
-    console.log(fullName); // Outputs: John
-
-
-    console.log()
     videoRef.current.pause();
-    setshowData(true);
+    setShowData(true);
     try {
-      const response = await axios.get(`http://localhost:5000/api/getPersonDetails`, {
+      const response = await axios.get('http://localhost:5000/api/getPersonDetails', {
         params: {
           name: fullName
         }
       });
-      console.log(response.data)
-      
       setData(response.data);
-      console.log(data.Type)
     } catch (error) {
       console.error('Error fetching person details:', error);
       setError('Error fetching person details');
@@ -237,26 +221,42 @@ function DetectPeople({ setActivePage }) {
       context.clearRect(0, 0, canvas.width, canvas.height);
     }
   };
-  const [passName, setPassName] = useState(null);
-  const [visible, setVisible] = useState(null);
+
   const handleFine = () => {
-   
-      setActivePage('FineData'); // Assuming setActivePage is a function to switch to FineData
-    
-  }
+    setActivePage('FineData');
+  };
 
   const handleSlip = () => {
-   
-    setActivePage('Staff'); // Assuming setActivePage is a function to switch to FineData
-  
-}
+    setActivePage('Staff');
+  };
 
+  const handleRefresh = () => {
+    window.location.reload();
+  };
 
-  console.log(data)
- 
+  const captureImage = () => {
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    setCapturedImage(canvas.toDataURL('image/png'));
+  };
+
+  if (alertShown) {
+    return (
+      <div className="alert">
+        <h2 className="alertText">Unknown Person Detected</h2>
+        {capturedImage && <img src={capturedImage} alt="Captured Unknown Person" />}
+        <br></br>
+        <button className ="alertButton"onClick={handleRefresh}>Refresh</button>
+      </div>
+    );
+  }
+
   return (
     <div className='detect_container'>
-          
       {showData && (
         <div className='card'>
           <h2>Person Detected</h2>
@@ -275,22 +275,22 @@ function DetectPeople({ setActivePage }) {
           <div className='field'>
             <span className='label'>Section :</span> {data.Section}
           </div>
-          {data.Type ==="student" ?   <button onClick={handleFine} className='fine-btn'>Fine</button> :  <button onClick={handleSlip} className='fine-btn'>GenerateSlip</button>}
-        
+          {data.Type === "student" ? (
+            <button onClick={handleFine} className='fine-btn'>Fine</button>
+          ) : (
+            <button onClick={handleSlip} className='fine-btn'>Generate Slip</button>
+          )}
         </div>
       )}
       <div className="myapp">
         <h1 className='detect_h1'>Your Face is being detected</h1>
-     
         {error && <p>Error: {error}</p>}
         <div className="appvideo">
           <video ref={videoRef} autoPlay muted width="940" height="650"></video>
           <canvas ref={canvasRef} className="appcanvas" />
         </div>
         <button className='confirmDetectBtn' onClick={handleDetection} disabled={!detectedName}>Confirm Detection</button>
-      
       </div>
-   
     </div>
   );
 }

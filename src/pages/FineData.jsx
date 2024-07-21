@@ -14,16 +14,18 @@ function FineData() {
   const [showSuggestions, setShowSuggestions] = useState(false); // Track when to show suggestions
   const [customFineType, setCustomFineType] = useState(''); // State for custom fine type
   const [customFineAmount, setCustomFineAmount] = useState(''); // State for custom fine amount
+  const [errors, setErrors] = useState({}); // State for form errors
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/students')
-      .then(response => {
+    axios
+      .get("http://localhost:5000/api/students")
+      .then((response) => {
         setStudents(response.data); // Assuming response.data is an array of student objects
         setSuggestions(response.data); // Populate suggestions with all students initially
-        console.log('Data received:', response.data);
+        console.log("Data received:", response.data);
       })
-      .catch(error => {
-        console.error('Error fetching students:', error);
+      .catch((error) => {
+        console.error("Error fetching students:", error);
       });
   }, []);
 
@@ -31,12 +33,13 @@ function FineData() {
     const value = e.target.value;
     setSearchTerm(value);
 
-    const filteredStudents = students.filter(student =>
-      student.Name.toLowerCase().includes(value.toLowerCase()) ||
-      student.ID.toLowerCase().includes(value.toLowerCase()) ||
-      student.Section.toLowerCase().includes(value.toLowerCase()) ||
-      student.Type.toLowerCase().includes(value.toLowerCase()) ||
-      student.department.toLowerCase().includes(value.toLowerCase())
+    const filteredStudents = students.filter(
+      (student) =>
+        student.Name.toLowerCase().includes(value.toLowerCase()) ||
+        student.ID.toLowerCase().includes(value.toLowerCase()) ||
+        student.Section.toLowerCase().includes(value.toLowerCase()) ||
+        student.Type.toLowerCase().includes(value.toLowerCase()) ||
+        student.department.toLowerCase().includes(value.toLowerCase())
     );
     setSuggestions(filteredStudents);
   };
@@ -58,18 +61,20 @@ function FineData() {
     const selectedFineType = e.target.value;
     setFineType(selectedFineType);
 
-    if (selectedFineType === 'Writing wrong name to gain access to University') {
+    if (
+      selectedFineType === "Writing wrong name to gain access to University"
+    ) {
       setFineAmount(1000);
-      setCustomFineType(''); // Clear custom fine type input
-      setCustomFineAmount(''); // Clear custom fine amount input
-    } else if (selectedFineType === 'Not in modest dressing') {
+      setCustomFineType(""); // Clear custom fine type input
+      setCustomFineAmount(""); // Clear custom fine amount input
+    } else if (selectedFineType === "Not in modest dressing") {
       setFineAmount(500);
-      setCustomFineType(''); // Clear custom fine type input
-      setCustomFineAmount(''); // Clear custom fine amount input
-    } else if (selectedFineType === 'Round Collar') {
+      setCustomFineType(""); // Clear custom fine type input
+      setCustomFineAmount(""); // Clear custom fine amount input
+    } else if (selectedFineType === "Round Collar") {
       setFineAmount(500);
-      setCustomFineType(''); // Clear custom fine type input
-      setCustomFineAmount(''); // Clear custom fine amount input
+      setCustomFineType(""); // Clear custom fine type input
+      setCustomFineAmount(""); // Clear custom fine amount input
     } else {
       setFineAmount(0); // For 'Other' option, fine amount will be manually set
     }
@@ -83,57 +88,69 @@ function FineData() {
     setCustomFineAmount(e.target.value);
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!selectedStudent)
+      newErrors.selectedStudent = "Please select a student.";
+    if (!fineType && !customFineType)
+      newErrors.fineType =
+        "Please select a fine type or enter a custom fine type.";
+    if (fineAmount === 0 && !customFineAmount)
+      newErrors.fineAmount = "Please set a fine amount.";
+    if (fineType === "Other" && (!customFineType || !customFineAmount)) {
+      newErrors.customFine = "Please enter the custom fine type and amount.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const applyFine = () => {
-    if (!selectedStudent) {
-      alert('Please select a student.');
-      return;
-    }
-    if (!fineType && !customFineType) {
-      alert('Please select a fine type or enter a custom fine type.');
-      return;
-    }
-    if (fineAmount === 0 && !customFineType) {
-      alert('Please select a fine amount or enter a custom fine type.');
-      return;
-    }
-    if (fineType === 'Other' && (!customFineType || !customFineAmount)) {
-      alert('Please enter the custom fine type and amount.');
-      return;
-    }
+    if (!validateForm()) return;
 
     // Prepare data to send to the server
     const fineData = {
       studentId: selectedStudent,
       studentName: selectedStudentName,
       department: department,
-      fineType: fineType === 'Other' ? customFineType : fineType, // Use custom fine type if provided
-      fineAmount: fineType === 'Other' ? customFineAmount : fineAmount // Use custom fine amount if provided
+      fineType: fineType === "Other" ? customFineType : fineType, // Use custom fine type if provided
+      fineAmount: fineType === "Other" ? customFineAmount : fineAmount, // Use custom fine amount if provided
     };
 
     // Make API call to submit fine data
-    axios.post('http://localhost:5000/api/fine', fineData)
-      .then(response => {
-        console.log('Fine applied successfully:', response.data);
-        alert(`Applied ${fineType === 'Other' ? customFineType : fineType} fine of Rs ${fineType === 'Other' ? customFineAmount : fineAmount} to student ${selectedStudentName} (${selectedStudent})`);
-        setSelectedStudent('');
-        setSelectedStudentName('');
-        setDepartment('');
-        setFineType('');
+    axios
+      .post("http://localhost:5000/api/fine", fineData)
+      .then((response) => {
+        console.log("Fine applied successfully:", response.data);
+        alert(
+          `Applied ${
+            fineType === "Other" ? customFineType : fineType
+          } fine of Rs ${
+            fineType === "Other" ? customFineAmount : fineAmount
+          } to student ${selectedStudentName} (${selectedStudent})`
+        );
+        setSelectedStudent("");
+        setSelectedStudentName("");
+        setDepartment("");
+        setFineType("");
         setFineAmount(0);
-        setCustomFineType(''); // Reset custom fine type input
-        setCustomFineAmount(''); // Reset custom fine amount input
-        setSearchTerm('');
+        setCustomFineType(""); // Reset custom fine type input
+        setCustomFineAmount(""); // Reset custom fine amount input
+        setSearchTerm("");
+        setErrors({}); // Clear errors
       })
-      .catch(error => {
-        console.error('Error applying fine:', error);
-        alert('Failed to apply fine. Please try again.');
+      .catch((error) => {
+        console.error("Error applying fine:", error);
+        alert("Failed to apply fine. Please try again.");
       });
   };
 
   return (
     <div className="fine-data-container">
       <div className="fine-search">
-        <label htmlFor="search" className='searchLabel'>Search Student</label>
+        <label htmlFor="search" className="searchLabel">
+          Search Student
+        </label>
         <input
           type="text"
           id="search"
@@ -144,7 +161,7 @@ function FineData() {
         />
         {showSuggestions && suggestions.length > 0 && (
           <ul>
-            {suggestions.map(student => (
+            {suggestions.map((student) => (
               <li key={student.ID} onClick={() => handleSelectStudent(student)}>
                 {`${student.Name} (${student.ID}) - ${student.Section} - ${student.Type}`}
               </li>
@@ -160,6 +177,9 @@ function FineData() {
             Student Name:
             <input type="text" value={selectedStudentName} readOnly />
           </label>
+          {errors.selectedStudent && (
+            <p className="error">{errors.selectedStudent}</p>
+          )}
         </div>
         <div>
           <label>
@@ -173,7 +193,9 @@ function FineData() {
               type="radio"
               name="fineType"
               value="Writing wrong name to gain access to University"
-              checked={fineType === 'Writing wrong name to gain access to University'}
+              checked={
+                fineType === "Writing wrong name to gain access to University"
+              }
               onChange={handleFineTypeChange}
             />
             Writing wrong name to gain access to University (1000)
@@ -183,7 +205,7 @@ function FineData() {
               type="radio"
               name="fineType"
               value="Not in modest dressing"
-              checked={fineType === 'Not in modest dressing'}
+              checked={fineType === "Not in modest dressing"}
               onChange={handleFineTypeChange}
             />
             Not in modest dressing (500)
@@ -193,7 +215,7 @@ function FineData() {
               type="radio"
               name="fineType"
               value="Round Collar"
-              checked={fineType === 'Round Collar'}
+              checked={fineType === "Round Collar"}
               onChange={handleFineTypeChange}
             />
             Round Collar (500)
@@ -203,12 +225,12 @@ function FineData() {
               type="radio"
               name="fineType"
               value="Other"
-              checked={fineType === 'Other'}
+              checked={fineType === "Other"}
               onChange={handleFineTypeChange}
             />
             Other
           </label>
-          {fineType === 'Other' && (
+          {fineType === "Other" && (
             <div>
               <label>
                 Custom Fine Type:
@@ -226,11 +248,18 @@ function FineData() {
                   onChange={handleCustomFineAmountChange}
                 />
               </label>
+              {errors.customFine && (
+                <p className="error">{errors.customFine}</p>
+              )}
             </div>
           )}
+          {errors.fineType && <p className="error">{errors.fineType}</p>}
+          {errors.fineAmount && <p className="error">{errors.fineAmount}</p>}
         </div>
 
-        <button className="fine-apply-button" onClick={applyFine}>Apply Fine</button>
+        <button className="fine-apply-button" onClick={applyFine}>
+          Apply Fine
+        </button>
       </div>
     </div>
   );

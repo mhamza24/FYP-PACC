@@ -12,6 +12,7 @@ const TrainData = () => {
   const [images, setImages] = useState([]);
   const [instruction, setInstruction] = useState("Look into the camera");
   const [capturedImagesCount, setCapturedImagesCount] = useState(0);
+  const [errors, setErrors] = useState({});
   const webcamRef = useRef(null);
 
   const instructions = [
@@ -19,7 +20,7 @@ const TrainData = () => {
     "Look right",
     "Look left",
     "Look down",
-    "Smile"
+    "Smile",
   ];
 
   const handleCapture = useCallback(() => {
@@ -35,6 +36,22 @@ const TrainData = () => {
   }, [webcamRef, capturedImagesCount]);
 
   const handleSubmit = async () => {
+    // Validation
+    const newErrors = {};
+    if (!name) newErrors.name = "Name is required";
+    if (!id) newErrors.id = "ID is required";
+    if (!section) newErrors.section = "Section is required";
+    if (!department) newErrors.department = "Department is required";
+    if (!type) newErrors.type = "Type is required";
+    if (images.length === 0)
+      newErrors.images = "At least one image is required";
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      return; // Stop submission if there are validation errors
+    }
+
     const formData = new FormData();
     formData.append("name", name);
     formData.append("id", id);
@@ -72,6 +89,7 @@ const TrainData = () => {
       setImages([]);
       setCapturedImagesCount(0);
       setInstruction("Look into the camera");
+      setErrors({});
     } catch (error) {
       console.error("Error uploading data and images", error);
       alert("Error uploading data and images");
@@ -90,6 +108,7 @@ const TrainData = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
+            {errors.name && <p className="error">{errors.name}</p>}
           </div>
           <div className="form-group">
             <label>ID:</label>
@@ -98,6 +117,7 @@ const TrainData = () => {
               value={id}
               onChange={(e) => setId(e.target.value)}
             />
+            {errors.id && <p className="error">{errors.id}</p>}
           </div>
           <div className="form-group">
             <label>Section:</label>
@@ -106,6 +126,7 @@ const TrainData = () => {
               value={section}
               onChange={(e) => setSection(e.target.value)}
             />
+            {errors.section && <p className="error">{errors.section}</p>}
           </div>
           <div className="form-group">
             <label>Department:</label>
@@ -115,12 +136,15 @@ const TrainData = () => {
             >
               <option value="">Select Department</option>
               <option value="Management Sciences">Management Sciences</option>
-              <option value="Humanities & Social Sciences">Humanities & Social Sciences</option>
+              <option value="Humanities & Social Sciences">
+                Humanities & Social Sciences
+              </option>
               <option value="Mechanical">Mechanical</option>
               <option value="Electrical">Electrical</option>
               <option value="Civil">Civil</option>
               <option value="Computer Science">Computer Science</option>
             </select>
+            {errors.department && <p className="error">{errors.department}</p>}
           </div>
           <div className="form-group">
             <label>Type:</label>
@@ -144,10 +168,15 @@ const TrainData = () => {
                 Student
               </label>
             </div>
+            {errors.type && <p className="error">{errors.type}</p>}
           </div>
         </form>
         {capturedImagesCount >= instructions.length && (
-          <button className="submit-button" type="button" onClick={handleSubmit}>
+          <button
+            className="submit-button"
+            type="button"
+            onClick={handleSubmit}
+          >
             Submit
           </button>
         )}

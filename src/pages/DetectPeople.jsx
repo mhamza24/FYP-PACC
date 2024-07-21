@@ -18,6 +18,7 @@ function DetectPeople({ setActivePage }) {
   const [showData, setShowData] = useState(false);
   const [unknownTimer, setUnknownTimer] = useState(null);
   const [alertShown, setAlertShown] = useState(false);
+  const [unknownDetected, setUnknownDetected] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ function DetectPeople({ setActivePage }) {
 
     return () => {
       clearCanvas();
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       if (videoRef.current) {
         videoRef.current.pause();
         videoRef.current.srcObject = null;
@@ -43,7 +44,8 @@ function DetectPeople({ setActivePage }) {
 
   const startVideo = () => {
     if (videoRef.current) {
-      navigator.mediaDevices.getUserMedia({ video: true })
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
         .then((stream) => {
           videoRef.current.srcObject = stream;
           videoRef.current.onloadedmetadata = () => {
@@ -55,16 +57,16 @@ function DetectPeople({ setActivePage }) {
           setError(`Error accessing webcam: ${error.message}`);
         });
     }
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
   };
 
   const loadModels = () => {
     Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-      faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-      faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
-      faceapi.nets.faceExpressionNet.loadFromUri('/models'),
-      faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
+      faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
+      faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+      faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+      faceapi.nets.faceExpressionNet.loadFromUri("/models"),
+      faceapi.nets.ssdMobilenetv1.loadFromUri("/models"),
     ])
       .then(() => {
         setModelsLoaded(true);
@@ -80,7 +82,10 @@ function DetectPeople({ setActivePage }) {
     if (video && canvas) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      const displaySize = { width: video.videoWidth, height: video.videoHeight };
+      const displaySize = {
+        width: video.videoWidth,
+        height: video.videoHeight,
+      };
       faceapi.matchDimensions(canvas, displaySize);
     }
   };
@@ -100,16 +105,25 @@ function DetectPeople({ setActivePage }) {
         return;
       }
 
-      const detections = await faceapi.detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.2 }))
+      const detections = await faceapi
+        .detectAllFaces(
+          videoElement,
+          new faceapi.SsdMobilenetv1Options({ minConfidence: 0.2 })
+        )
         .withFaceLandmarks()
         .withFaceDescriptors();
-      const displaySize = { width: videoElement.videoWidth, height: videoElement.videoHeight };
+      const displaySize = {
+        width: videoElement.videoWidth,
+        height: videoElement.videoHeight,
+      };
       const resizedDetections = faceapi.resizeResults(detections, displaySize);
       const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext("2d");
       context.clearRect(0, 0, canvas.width, canvas.height);
 
-      const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
+      const results = resizedDetections.map((d) =>
+        faceMatcher.findBestMatch(d.descriptor)
+      );
 
       if (results.length > 0) {
         const name = results[0].toString();
@@ -125,7 +139,7 @@ function DetectPeople({ setActivePage }) {
       });
     }, 100);
 
-    videoRef.current.addEventListener('pause', () => {
+    videoRef.current.addEventListener("pause", () => {
       clearInterval(detectInterval);
     });
 
@@ -135,26 +149,46 @@ function DetectPeople({ setActivePage }) {
   };
 
   const handleUnknownName = (name) => {
-    if (name.includes('unknown')) {
+    console.log(name, unknownDetected);
+
+    if (name.includes("unknown")) {
       if (!unknownTimer) {
+        setUnknownDetected(true); // Set state to indicate detection of unknown
         const timer = setTimeout(() => {
           captureImage();
-          setAlertShown(true);
+
+          // Use a functional update to get the latest value of unknownDetected
+          setUnknownDetected((prevState) => {
+            if (prevState && name.includes("unknown")) {
+              setAlertShown(true);
+            }
+            return false; // Reset after checking
+          });
+
+          // Clear the timer after it triggers
+          setUnknownTimer(null);
         }, 15000);
+
         setUnknownTimer(timer);
       }
     } else {
-      clearTimeout(unknownTimer);
-      setUnknownTimer(null);
+      // If the name is no longer unknown, clear the timer and reset state
+      if (unknownTimer) {
+        clearTimeout(unknownTimer);
+        setUnknownTimer(null);
+      }
+      setUnknownDetected(false); // Reset detection state
     }
   };
 
   const fetchLabeledImages = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/getLabelDirectories'); // Adjust URL/port as needed
+      const response = await axios.get(
+        "http://localhost:5000/api/getLabelDirectories"
+      ); // Adjust URL/port as needed
       return response.data;
     } catch (error) {
-      console.error('Error fetching labeled images:', error);
+      console.error("Error fetching labeled images:", error);
     }
   };
 
@@ -168,7 +202,10 @@ function DetectPeople({ setActivePage }) {
             const imagePath = `server/src/labeled_images/${label}/${i}.jpg`;
             try {
               const img = await faceapi.fetchImage(imagePath);
-              const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+              const detections = await faceapi
+                .detectSingleFace(img)
+                .withFaceLandmarks()
+                .withFaceDescriptor();
               if (detections) {
                 descriptions.push(detections.descriptor);
               }
@@ -183,7 +220,7 @@ function DetectPeople({ setActivePage }) {
           }
         })
       );
-      return labeledDescriptors.filter(descriptor => descriptor !== null);
+      return labeledDescriptors.filter((descriptor) => descriptor !== null);
     } catch (error) {
       console.error(`Error loading labeled images: ${error.message}`);
       throw error;
@@ -192,21 +229,24 @@ function DetectPeople({ setActivePage }) {
 
   const handleDetection = async () => {
     if (!detectedName) return;
-    const cleanedName = detectedName.replace(/[^a-zA-Z ]/g, '');
-    const fullName = cleanedName.split(' ').slice(0, 2).join(' ');
+    const cleanedName = detectedName.replace(/[^a-zA-Z ]/g, "");
+    const fullName = cleanedName.split(" ").slice(0, 2).join(" ");
 
     videoRef.current.pause();
     setShowData(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/getPersonDetails', {
-        params: {
-          name: fullName
+      const response = await axios.get(
+        "http://localhost:5000/api/getPersonDetails",
+        {
+          params: {
+            name: fullName,
+          },
         }
-      });
+      );
       setData(response.data);
     } catch (error) {
-      console.error('Error fetching person details:', error);
-      setError('Error fetching person details');
+      console.error("Error fetching person details:", error);
+      setError("Error fetching person details");
     }
   };
 
@@ -217,79 +257,112 @@ function DetectPeople({ setActivePage }) {
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (canvas) {
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext("2d");
       context.clearRect(0, 0, canvas.width, canvas.height);
     }
   };
 
   const handleFine = () => {
-    setActivePage('FineData');
+    setActivePage("FineData");
+  };
+  const handleRegister = () => {
+    setActivePage("TrainData");
   };
 
   const handleSlip = () => {
-    setActivePage('Staff');
+    setActivePage("Staff");
   };
 
   const handleRefresh = () => {
     window.location.reload();
   };
-
+  console.log(unknownDetected);
   const captureImage = () => {
     const video = videoRef.current;
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext("2d");
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    setCapturedImage(canvas.toDataURL('image/png'));
+    setCapturedImage(canvas.toDataURL("image/png"));
   };
 
   if (alertShown) {
+    console.log(true);
     return (
       <div className="alert">
         <h2 className="alertText">Unknown Person Detected</h2>
-        {capturedImage && <img src={capturedImage} alt="Captured Unknown Person" />}
+        {capturedImage && (
+          <img src={capturedImage} alt="Captured Unknown Person" height={425} />
+        )}
         <br></br>
-        <button className ="alertButton"onClick={handleRefresh}>Refresh</button>
+        <button className="alertButton" onClick={handleRefresh}>
+          Refresh
+        </button>
+        <button
+          style={{ marginLeft: 52 }}
+          className="alertButton"
+          onClick={handleRegister}
+        >
+          Register Person
+        </button>
       </div>
     );
   }
 
   return (
-    <div className='detect_container'>
+    <div className="detect_container">
       {showData && (
-        <div className='card'>
-          <h2>Person Detected</h2>
-          <div className='image-container'>
-            <img src={`server/src/labeled_images/${data.Name}/1.jpg`} alt="Person" className='image' />
+        <div className="card">
+          {data.Type === "student" ? (
+            <h2>Student Detected</h2>
+          ) : (
+            <h2>NTS Detected</h2>
+          )}
+          <div className="image-container">
+            <img
+              src={`server/src/labeled_images/${data.Name}/1.jpg`}
+              alt="Person"
+              className="image"
+            />
           </div>
-          <div className='field'>
-            <span className='label'>Name:</span> {data.Name}
+          <div className="field">
+            <span className="label">Name:</span> {data.Name}
           </div>
-          <div className='field'>
-            <span className='label'>Student ID:</span> {data.ID}
+          <div className="field">
+            <span className="label">Student ID:</span> {data.ID}
           </div>
-          <div className='field'>
-            <span className='label'>Department:</span> {data.department}
+          <div className="field">
+            <span className="label">Department:</span> {data.department}
           </div>
-          <div className='field'>
-            <span className='label'>Section:</span> {data.Section}
+          <div className="field">
+            <span className="label">Section:</span> {data.Section}
           </div>
           {data.Type === "student" ? (
-            <button onClick={handleFine} className='fine-btn'>Fine</button>
+            <button onClick={handleFine} className="fine-btn">
+              Fine
+            </button>
           ) : (
-            <button onClick={handleSlip} className='fine-btn'>Generate Slip</button>
+            <button onClick={handleSlip} className="fine-btn">
+              Generate Slip
+            </button>
           )}
         </div>
       )}
       <div className="myapp">
-        <h1 className='detect_h1'>Your Face is being detected</h1>
+        <h1 className="detect_h1">Your Face is being detected</h1>
         {error && <p>Error: {error}</p>}
         <div className="appvideo">
           <video ref={videoRef} autoPlay muted width="940" height="650"></video>
           <canvas ref={canvasRef} className="appcanvas" />
         </div>
-        <button className='confirmDetectBtn' onClick={handleDetection} disabled={!detectedName}>Confirm Detection</button>
+        <button
+          className="confirmDetectBtn"
+          onClick={handleDetection}
+          disabled={!detectedName}
+        >
+          Confirm Detection
+        </button>
       </div>
     </div>
   );

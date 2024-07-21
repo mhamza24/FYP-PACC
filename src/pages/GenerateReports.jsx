@@ -117,46 +117,65 @@ function GenerateReports() {
 
   const downloadCSV = () => {
     const now = new Date();
-    const rawData = selectedType === 'student' ? studentData : staffData;
-    const filteredData = rawData.filter(item => {
-      const date = new Date(selectedType === 'student' ? item.created_at : item.time);
-      switch (filter) {
-        case 'daily':
-          return isWithinInterval(date, { start: subDays(now, 1), end: now });
-        case 'weekly':
-          return isWithinInterval(date, { start: startOfWeek(now, { weekStartsOn: 1 }), end: now });
-        case 'monthly':
-          return isWithinInterval(date, { start: startOfMonth(now), end: now });
-        default:
-          return true;
-      }
-    }).filter(item => {
-      const searchTerm = searchQuery.toLowerCase();
-      const fine_amount = item.fine_amount ? parseInt(item.fine_amount, 10) : null;
-      const searchValue = parseInt(searchQuery, 10);
-      return (
-        item.student_id?.toLowerCase().includes(searchTerm) ||
-        item.staff_id?.toLowerCase().includes(searchTerm) ||
-        item.student_name?.toLowerCase().includes(searchTerm) ||
-        item.staff_name?.toLowerCase().includes(searchTerm) ||
-        item.fine_type?.toLowerCase().includes(searchTerm) ||
-        item.department?.toLowerCase().includes(searchTerm) ||
-        item.reason?.toLowerCase().includes(searchTerm) ||
-        item.time?.toLowerCase().includes(searchTerm) ||
-        item.created_at?.toLowerCase().includes(searchTerm) ||
-        (fine_amount !== null && !isNaN(searchValue) && fine_amount === searchValue)
-      );
-    });
+    const rawData = selectedType === "student" ? studentData : staffData;
 
-    const csvData = filteredData.map(item => {
-      if (selectedType === 'student') {
+    const filteredData = rawData
+      .filter((item) => {
+        const date = new Date(
+          selectedType === "student" ? item.created_at : item.time
+        );
+        switch (filter) {
+          case "daily":
+            return isWithinInterval(date, { start: subDays(now, 1), end: now });
+          case "weekly":
+            return isWithinInterval(date, {
+              start: startOfWeek(now, { weekStartsOn: 1 }),
+              end: now,
+            });
+          case "monthly":
+            return isWithinInterval(date, {
+              start: startOfMonth(now),
+              end: now,
+            });
+          default:
+            return true;
+        }
+      })
+      .filter((item) => {
+        const searchTerm = searchQuery.toLowerCase();
+        const fine_amount = item.fine_amount
+          ? parseInt(item.fine_amount, 10)
+          : null;
+        const searchValue = parseInt(searchQuery, 10);
+        return (
+          item.student_id?.toLowerCase().includes(searchTerm) ||
+          item.staff_id?.toLowerCase().includes(searchTerm) ||
+          item.student_name?.toLowerCase().includes(searchTerm) ||
+          item.staff_name?.toLowerCase().includes(searchTerm) ||
+          item.fine_type?.toLowerCase().includes(searchTerm) ||
+          item.department?.toLowerCase().includes(searchTerm) ||
+          item.reason?.toLowerCase().includes(searchTerm) ||
+          item.time?.toLowerCase().includes(searchTerm) ||
+          item.created_at?.toLowerCase().includes(searchTerm) ||
+          (fine_amount !== null &&
+            !isNaN(searchValue) &&
+            fine_amount === searchValue)
+        );
+      });
+
+    if (filteredData.length === 0) {
+      alert("No data available to download."); // You can use any method to show feedback
+      return;
+    }
+    const csvData = filteredData.map((item) => {
+      if (selectedType === "student") {
         return {
           ID: item.student_id,
           Name: item.student_name,
           FineType: item.fine_type,
           Amount: item.fine_amount,
           Department: item.department,
-          Date: formatDateTime(item.created_at)
+          Date: formatDateTime(item.created_at),
         };
       } else {
         return {
@@ -165,19 +184,19 @@ function GenerateReports() {
           Department: item.department,
           Reason: item.reason,
           Duration: item.duration,
-          Date: formatDateTime(item.time)
+          Date: formatDateTime(item.time),
         };
       }
     });
 
     const csv = Papa.unparse(csvData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
 
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${selectedType}_data.csv`);
-    link.style.visibility = 'hidden';
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${selectedType}_data.csv`);
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

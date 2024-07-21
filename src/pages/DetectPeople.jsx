@@ -140,7 +140,7 @@ function DetectPeople({ setActivePage }) {
         const timer = setTimeout(() => {
           captureImage();
           setAlertShown(true);
-        }, 5000);
+        }, 15000);
         setUnknownTimer(timer);
       }
     } else {
@@ -264,16 +264,16 @@ function DetectPeople({ setActivePage }) {
             <img src={`server/src/labeled_images/${data.Name}/1.jpg`} alt="Person" className='image' />
           </div>
           <div className='field'>
-            <span className='label'>Name :</span> {data.Name}
+            <span className='label'>Name:</span> {data.Name}
           </div>
           <div className='field'>
-            <span className='label'>Student ID :</span> {data.ID}
+            <span className='label'>Student ID:</span> {data.ID}
           </div>
           <div className='field'>
-            <span className='label'>Department :</span> {data.department}
+            <span className='label'>Department:</span> {data.department}
           </div>
           <div className='field'>
-            <span className='label'>Section :</span> {data.Section}
+            <span className='label'>Section:</span> {data.Section}
           </div>
           {data.Type === "student" ? (
             <button onClick={handleFine} className='fine-btn'>Fine</button>

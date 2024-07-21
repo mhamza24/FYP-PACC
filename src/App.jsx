@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "../src/style.css";
 import TrainData from "./pages/TrainData";
 import DetectPeople from "./pages/DetectPeople";
@@ -16,56 +16,55 @@ function App() {
 
   return (
     <div className="App">
-      <header>
-        <div>
-          <img src={uniLogo} alt="University Logo" 
-          style={{ width: "150px", height: "45px", cursor: "pointer"}}
-          onClick={() => handleMenuClick("TrainData")}
+      <header className="navbar">
+        <div className="navbar-brand">
+          <img 
+            src={uniLogo} 
+            alt="University Logo" 
+            className="navbar-logo"
+            onClick={() => handleMenuClick("TrainData")}
           />
         </div>
-        <div
-          className={`nav-option ${activePage === "TrainData" ? "active" : ""}`}
-          onClick={() => handleMenuClick("TrainData")}
-        >
-          <h3>Register Person</h3>
-        </div>
+        <nav className="navbar-nav">
+          <div 
+            className={`nav-item ${activePage === "TrainData" ? "active" : ""}`}
+            onClick={() => handleMenuClick("TrainData")}
+          >
+            <h3>Register Person</h3>
+          </div>
 
-        <div
-          className={`nav-option ${
-            activePage === "DetectPeople" ? "active" : ""
-          }`}
-          onClick={() => handleMenuClick("DetectPeople")}
-        >
-          <h3>Detect Face</h3>
-        </div>
+          <div 
+            className={`nav-item ${activePage === "DetectPeople" ? "active" : ""}`}
+            onClick={() => handleMenuClick("DetectPeople")}
+          >
+            <h3>Detect Face</h3>
+          </div>
 
-        <div
-          className={`nav-option ${activePage === "FineData" ? "active" : ""}`}
-          onClick={() => handleMenuClick("FineData")}
-        >
-          <h3>Student</h3>
-        </div>
-        <div
-          className={`nav-option ${activePage === "Staff" ? "active" : ""}`}
-          onClick={() => handleMenuClick("Staff")}
-        >
-          <h3>Staff</h3>
-        </div>
-        <div
-          className={`nav-option ${
-            activePage === "GenerateReports" ? "active" : ""
-          }`}
-          onClick={() => handleMenuClick("GenerateReports")}
-        >
-          <h3>Generate Reports</h3>
-        </div>
+          <div 
+            className={`nav-item ${activePage === "FineData" ? "active" : ""}`}
+            onClick={() => handleMenuClick("FineData")}
+          >
+            <h3>Student</h3>
+          </div>
 
-       
+          <div 
+            className={`nav-item ${activePage === "Staff" ? "active" : ""}`}
+            onClick={() => handleMenuClick("Staff")}
+          >
+            <h3>Staff</h3>
+          </div>
+
+          <div 
+            className={`nav-item ${activePage === "GenerateReports" ? "active" : ""}`}
+            onClick={() => handleMenuClick("GenerateReports")}
+          >
+            <h3>Generate Reports</h3>
+          </div>
+        </nav>
       </header>
 
       <div className="main-container">
-        <div className="navcontainer"></div>
-        <div className="main" style={{paddingLeft: "0px", paddingRight: "0px"}}>
+        <div className="main">
           {activePage === "TrainData" && <TrainData />}
           {activePage === "DetectPeople" && (
             <DetectPeople setActivePage={setActivePage} />

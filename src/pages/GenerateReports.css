@@ -116,3 +116,33 @@
   cursor: pointer;
   box-shadow: 0 0 10px 3px rgba(129, 24, 27, 0.8);
 }
+
+/* Styling the container */
+.filter-container {
+  margin: 10px 0;
+}
+
+/* Styling the select element */
+.filter-container select {
+  height: 40px; /* Adjust the height as needed */
+  background-color: #d9d9d9; /* Default background color */
+  color: #7a7a7a; /* Default font color */
+  border: 1px solid #ccc; /* Border color */
+  border-radius: 4px; /* Rounded corners */
+  padding: 0 10px; /* Padding inside the dropdown */
+  font-size: 16px; /* Font size */
+}
+
+/* Styling the select element on hover */
+.filter-container select:hover {
+  background-color: #d9d9d9; /* Background color on hover */
+  color: #000; /* Font color on hover */
+  border-color: #999; /* Border color on hover */
+}
+
+.filter-container select option:hover {
+  background-color: #81181b; /* Change this to your desired hover color */
+  color: #000; /* Option text color on hover */
+}
+
+

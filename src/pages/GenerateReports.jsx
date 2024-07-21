@@ -100,7 +100,6 @@ function GenerateReports() {
     const paginatedData = filteredData.slice(startIndex, startIndex + rowsPerPage);
     setData(paginatedData);
   };
-  
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
@@ -117,7 +116,39 @@ function GenerateReports() {
   };
 
   const downloadCSV = () => {
-    const csvData = (selectedType === 'student' ? studentData : staffData).map(item => {
+    const now = new Date();
+    const rawData = selectedType === 'student' ? studentData : staffData;
+    const filteredData = rawData.filter(item => {
+      const date = new Date(selectedType === 'student' ? item.created_at : item.time);
+      switch (filter) {
+        case 'daily':
+          return isWithinInterval(date, { start: subDays(now, 1), end: now });
+        case 'weekly':
+          return isWithinInterval(date, { start: startOfWeek(now, { weekStartsOn: 1 }), end: now });
+        case 'monthly':
+          return isWithinInterval(date, { start: startOfMonth(now), end: now });
+        default:
+          return true;
+      }
+    }).filter(item => {
+      const searchTerm = searchQuery.toLowerCase();
+      const fine_amount = item.fine_amount ? parseInt(item.fine_amount, 10) : null;
+      const searchValue = parseInt(searchQuery, 10);
+      return (
+        item.student_id?.toLowerCase().includes(searchTerm) ||
+        item.staff_id?.toLowerCase().includes(searchTerm) ||
+        item.student_name?.toLowerCase().includes(searchTerm) ||
+        item.staff_name?.toLowerCase().includes(searchTerm) ||
+        item.fine_type?.toLowerCase().includes(searchTerm) ||
+        item.department?.toLowerCase().includes(searchTerm) ||
+        item.reason?.toLowerCase().includes(searchTerm) ||
+        item.time?.toLowerCase().includes(searchTerm) ||
+        item.created_at?.toLowerCase().includes(searchTerm) ||
+        (fine_amount !== null && !isNaN(searchValue) && fine_amount === searchValue)
+      );
+    });
+
+    const csvData = filteredData.map(item => {
       if (selectedType === 'student') {
         return {
           ID: item.student_id,

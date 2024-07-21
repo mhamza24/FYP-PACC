@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
 }
 
 .myapp {
@@ -74,12 +75,12 @@ video {
   height: 500px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 10px;
+  padding: 35px;
   width: 400px;
   text-align: left;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin: 0 auto;
-  margin-top: 50px;
+  margin: 50px 50px 0px 0px;
   font-family: "Roboto", sans-serif;
   background-color: #f9f9f9;
   color: #81181b;

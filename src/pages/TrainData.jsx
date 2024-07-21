@@ -117,7 +117,7 @@ const TrainData = () => {
               <option value="Management Sciences">Management Sciences</option>
               <option value="Humanities & Social Sciences">Humanities & Social Sciences</option>
               <option value="Mechanical">Mechanical</option>
-              <option value="Electical">Electical</option>
+              <option value="Electrical">Electrical</option>
               <option value="Civil">Civil</option>
               <option value="Computer Science">Computer Science</option>
             </select>
